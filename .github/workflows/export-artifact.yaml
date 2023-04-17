@@ -1,0 +1,40 @@
+name: Build Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install shc
+        run: sudo apt-get update && sudo apt-get install shc
+
+      - name: Compile script with shc
+        run: shc -f myscript.sh -o myscript
+
+      - name: Create Debian package
+        run: |
+          mkdir -p package/DEBIAN
+          echo "Package: myscript
+          Version: 1.0
+          Maintainer: Your Name <you@example.com>
+          Architecture: amd64
+          Description: My script
+          " > package/DEBIAN/control
+          mkdir -p package/usr/bin
+          cp myscript package/usr/bin/
+          chmod 755 package/usr/bin/myscript
+          dpkg-deb --build package
+          mv package.deb myscript_1.0_amd64.deb
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: myscript-deb
+          path: myscript_1.0_amd64.deb

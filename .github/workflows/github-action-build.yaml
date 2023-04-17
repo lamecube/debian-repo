@@ -1,0 +1,39 @@
+name: Debian Repo Workflow
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y dpkg-dev gnupg
+
+    - name: Create Debian Repository
+      run: |
+        bash debian-repo.sh -c
+      env:
+        KEYID: ${{ secrets.GPG_KEY }}
+      working-directory: ${{ github.workspace }}
+
+    - name: Sign packages
+      run: |
+        bash debian-repo.sh -s *.deb
+      env:
+        KEYID: ${{ secrets.GPG_KEY }}
+      working-directory: ${{ github.workspace }}
+
+    - name: Run tests
+      run: |
+        # run your tests here
+      working-directory: ${{ github.workspace }}
+
+    - name: Update apt repository
+      run: |
+        sudo apt-get update
+      if: always()

@@ -1,0 +1,27 @@
+name: Fuzz testing on Debian repository script
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y parallel fzf
+      - name: Run fuzzing
+        run: |
+          for i in $(seq 1 120); do
+            # Generate random option flag and parameter
+            option=$(grep -o -P '(?<=Flag: )-\w+|(?<=, )-\w+' ${{ github.workspace }}/debian-repo.sh | shuf -n 1)
+            param=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
+
+            # Call the script with the random option flag and parameter
+            echo "$option $param" | parallel --no-notice --ungroup --line-buffer bash -c "./debian-repo.sh {} >/dev/null || true"
+
+            # Randomly select from help options and call the script
+            grep -o -P '(?<=Flag: )-\w+|(?<=, )-\w+' ${{ github.workspace }}/debian-repo.sh | fzf --preview 'echo {}' | parallel --no-notice --ungroup --line-buffer bash -c "./debian-repo.sh {} >/dev/null || true"
+          done

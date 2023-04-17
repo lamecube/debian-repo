@@ -1,0 +1,30 @@
+name: Debian Package Verification Workflow
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y dpkg-dev gnupg apt-transport-https
+    - name: Download GPG key
+      run: |
+        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import --batch --passphrase-fd 0
+    - name: Download repository key
+      run: |
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ${{ secrets.REPO_KEY }}
+    - name: Add repository to sources.list
+      run: |
+        echo "deb [trusted=yes] ${{ secrets.REPO_URL }} ./" | sudo tee -a /etc/apt/sources.list.d/myrepo.list
+    - name: Update apt repository
+      run: |
+        sudo apt-get update
+    - name: Install package
+      run: |
+        sudo apt-get install -y <package-name>
+      if: always()
