@@ -1,0 +1,25 @@
+name: Spell Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  spell-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install hunspell
+        run: sudo apt-get update && sudo apt-get install hunspell
+      - name: Check spelling
+        run: |
+          for file in $(git ls-files); do
+            if [ -f "$file" ]; then
+              if [ $(file -b --mime-type "$file") == "text/plain" ]; then
+                hunspell -l -d en_US "$file"
+              fi
+            fi
+          done
