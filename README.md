@@ -1,5 +1,15 @@
 # 📦 Debian Repository Manager 📦
-
+<style>
+  img {
+      filter: invert(0%);
+      }
+  
+  @media (prefers-color-scheme: dark) {
+      img {
+        filter: invert(100%);
+    }
+  }
+</style>
 ![R2Gate way in key board](utils/r2Aski.png)
 &emsp; Debian Repository Manager helps you manage Debian package repositories. You can use it to create a new repository or update an existing one. You can also sign packages with your GPG key and reset the apt repository.
 
